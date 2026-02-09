@@ -22,7 +22,13 @@ namespace Sarpra.Api.Dtos
         [Required]
         public TimeSpan JamSelesai { get; set; }
 
-        [Required]
+
+[Required]
         public string Status { get; set; } = string.Empty;
+
+        public string? DiubahOleh { get; set; }
+
+        public string? Keterangan { get; set; }
+        
     }
 }

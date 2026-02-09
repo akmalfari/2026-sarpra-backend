@@ -14,7 +14,7 @@ namespace Sarpra.Api.Dtos
         public string Keperluan { get; set; } = string.Empty;
 
         [Required]
-        public DateTime TanggalPinjaman { get; set; }
+        public DateTime TanggalPeminjaman { get; set; }
 
         [Required]
         public TimeSpan JamMulai { get; set; }
@@ -22,7 +22,6 @@ namespace Sarpra.Api.Dtos
         [Required]
         public TimeSpan JamSelesai { get; set; }
 
-        // optional: kalau mau bisa dikirim, kalau tidak ya default "menunggu"
         public string? Status { get; set; }
     }
 }
