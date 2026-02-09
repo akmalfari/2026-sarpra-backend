@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Sarpra.Api.props" />
+</Project>
