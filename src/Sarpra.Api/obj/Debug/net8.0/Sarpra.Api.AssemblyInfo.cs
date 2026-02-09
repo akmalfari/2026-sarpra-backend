@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sarpra.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6f16c40d28ff8c5b1659c643946f89ba56c12f99")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b0b0eb48551ecda68345c8bcab00063a5bcf257b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sarpra.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sarpra.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
