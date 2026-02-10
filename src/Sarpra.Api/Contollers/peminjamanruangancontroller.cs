@@ -30,6 +30,18 @@ namespace Sarpra.Api.Controllers
                 JamSelesai = dto.JamSelesai,
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "menunggu" : dto.Status.ToLowerInvariant()
             };
+            if (dto.JamMulai >= dto.JamSelesai)
+            return BadRequest(new { message = "JamMulai harus lebih kecil dari JamSelesai." });
+
+            var bentrok = await IsBentrokAsync(
+             dto.NamaRuangan,
+             dto.TanggalPeminjaman,
+             dto.JamMulai,
+             dto.JamSelesai);
+
+             if (bentrok)
+             return BadRequest(new { message = "Jadwal bentrok dengan peminjaman lain pada ruangan dan tanggal yang sama." });
+
 
             _context.PeminjamanRuangan.Add(entity);
             await _context.SaveChangesAsync();
@@ -70,15 +82,31 @@ namespace Sarpra.Api.Controllers
             if (entity == null)
                 return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
 
-            entity.NamaPeminjam = dto.NamaPeminjam;
-            entity.NamaRuangan = dto.NamaRuangan;
-            entity.Keperluan = dto.Keperluan;
-            entity.TanggalPeminjaman = dto.TanggalPeminjaman.Date;
-            entity.JamMulai = dto.JamMulai;
-            entity.JamSelesai = dto.JamSelesai;
-            entity.Status = dto.Status.ToLowerInvariant();
+            if (dto.JamMulai >= dto.JamSelesai)
+                return BadRequest(new { message = "JamMulai harus lebih kecil dari JamSelesai." });
 
-            await _context.SaveChangesAsync();
+            var bentrok = await IsBentrokAsync(
+               dto.NamaRuangan,
+               dto.TanggalPeminjaman,
+               dto.JamMulai,
+               dto.JamSelesai,
+               exceptId: id,
+               hanyaBentrokDenganDisetujui: false // menunggu+disetujui dianggap mengunci slot
+             );
+
+             if (bentrok)
+              return BadRequest(new { message = "Jadwal bentrok dengan peminjaman lain pada ruangan dan tanggal yang sama." });
+    
+
+             entity.NamaPeminjam = dto.NamaPeminjam;
+             entity.NamaRuangan = dto.NamaRuangan;
+             entity.Keperluan = dto.Keperluan;
+             entity.TanggalPeminjaman = dto.TanggalPeminjaman.Date;
+             entity.JamMulai = dto.JamMulai;
+             entity.JamSelesai = dto.JamSelesai;
+             entity.Status = dto.Status.ToLowerInvariant();
+
+              await _context.SaveChangesAsync();
 
             return Ok(entity);
         }
@@ -122,14 +150,14 @@ namespace Sarpra.Api.Controllers
              entity.Status = statusSekarang;
 
             _context.RiwayatStatusPeminjaman.Add(new RiwayatStatusPeminjaman
-{
-    PeminjamanId = entity.Id,
-    StatusSebelumnya = statusSebelumnya,
-    StatusSekarang = statusSekarang,
-    DiubahOleh = dto.DiubahOleh,
-    Keterangan = dto.Keterangan,
-    WaktuPerubahan = DateTime.UtcNow
-});
+             {
+             PeminjamanId = entity.Id,
+             StatusSebelumnya = statusSebelumnya,
+             StatusSekarang = statusSekarang,
+             DiubahOleh = dto.DiubahOleh,
+             Keterangan = dto.Keterangan,
+             WaktuPerubahan = DateTime.UtcNow
+    });
 
 
 
@@ -210,5 +238,34 @@ namespace Sarpra.Api.Controllers
                 items
             });
         }
+
+         private async Task<bool> IsBentrokAsync(
+         string namaRuangan,
+         DateTime tanggalPeminjaman,
+         TimeSpan jamMulai,
+         TimeSpan jamSelesai,
+         int? exceptId = null,
+         bool hanyaBentrokDenganDisetujui = false)
+         {      
+         var tanggal = tanggalPeminjaman.Date;
+    
+         var query = _context.PeminjamanRuangan.AsNoTracking()
+        .Where(x =>
+            x.NamaRuangan == namaRuangan &&
+            x.TanggalPeminjaman.Date == tanggal &&
+            x.JamMulai < jamSelesai &&
+            x.JamSelesai > jamMulai);
+
+         if (exceptId.HasValue)
+         query = query.Where(x => x.Id != exceptId.Value);
+   
+         if (hanyaBentrokDenganDisetujui)
+         query = query.Where(x => x.Status == "disetujui");
+         else
+         query = query.Where(x => x.Status != "ditolak"); // menunggu + disetujui dianggap mengunci slot
+
+         return await query.AnyAsync();
+         }
+
     }
 }
