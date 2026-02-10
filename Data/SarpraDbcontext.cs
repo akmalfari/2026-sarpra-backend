@@ -8,5 +8,8 @@ namespace Sarpra.Api.Data
         public SarpraDbContext(DbContextOptions<SarpraDbContext> options) : base(options)
         {}
         public DbSet<PeminjamanRuangan> PeminjamanRuangan { get; set; }
+
+        public DbSet<RiwayatStatusPeminjaman> RiwayatStatusPeminjaman { get; set; }
+
     }
 }

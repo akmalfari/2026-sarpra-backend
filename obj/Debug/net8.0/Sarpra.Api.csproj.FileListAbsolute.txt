@@ -32,7 +32,6 @@ D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.Assembl
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.csproj.CoreCompileInputs.cache
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.MvcApplicationPartsAssemblyInfo.cs
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.MvcApplicationPartsAssemblyInfo.cache
-D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.sourcelink.json
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\staticwebassets.build.json
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\staticwebassets.development.json
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\staticwebassets\msbuild.Sarpra.Api.Microsoft.AspNetCore.StaticWebAssets.props
@@ -47,3 +46,11 @@ D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\refint\Sarpra.Api.
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.pdb
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\Sarpra.Api.genruntimeconfig.cache
 D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\obj\Debug\net8.0\ref\Sarpra.Api.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+D:\sarpra\2026-sarpra-backend\src\Sarpra.Api\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll

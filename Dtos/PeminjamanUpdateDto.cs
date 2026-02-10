@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Sarpra.Api.Dtos
 {
-    public class PeminjamanCreateDto
+    public class PeminjamanUpdateDto
     {
         [Required]
         public string NamaPeminjam { get; set; } = string.Empty;
@@ -22,6 +22,13 @@ namespace Sarpra.Api.Dtos
         [Required]
         public TimeSpan JamSelesai { get; set; }
 
-        public string? Status { get; set; }
+
+[Required]
+        public string Status { get; set; } = string.Empty;
+
+        public string? DiubahOleh { get; set; }
+
+        public string? Keterangan { get; set; }
+        
     }
 }
