@@ -17,9 +17,39 @@ namespace Sarpra.Api.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var data = await _context.PeminjamanRuangan
+                .OrderByDescending(x => x.Id)
+                .ToListAsync();
+
+            return Ok(data);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var entity = await _context.PeminjamanRuangan.FindAsync(id);
+            if (entity == null) return NotFound();
+            return Ok(entity);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PeminjamanCreateDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.NamaPeminjam) ||
+                string.IsNullOrWhiteSpace(dto.NamaRuangan) ||
+                string.IsNullOrWhiteSpace(dto.Keperluan))
+            {
+                return BadRequest("Field wajib diisi.");
+            }
+
+            if (dto.JamSelesai <= dto.JamMulai)
+            {
+                return BadRequest("Jam selesai harus lebih besar dari jam mulai.");
+            }
+
             var entity = new PeminjamanRuangan
             {
                 NamaPeminjam = dto.NamaPeminjam,
@@ -28,244 +58,63 @@ namespace Sarpra.Api.Controllers
                 TanggalPeminjaman = dto.TanggalPeminjaman.Date,
                 JamMulai = dto.JamMulai,
                 JamSelesai = dto.JamSelesai,
-                Status = string.IsNullOrWhiteSpace(dto.Status) ? "menunggu" : dto.Status.ToLowerInvariant()
+                Status = "menunggu"
             };
-            if (dto.JamMulai >= dto.JamSelesai)
-            return BadRequest(new { message = "JamMulai harus lebih kecil dari JamSelesai." });
-
-            var bentrok = await IsBentrokAsync(
-             dto.NamaRuangan,
-             dto.TanggalPeminjaman,
-             dto.JamMulai,
-             dto.JamSelesai);
-
-             if (bentrok)
-             return BadRequest(new { message = "Jadwal bentrok dengan peminjaman lain pada ruangan dan tanggal yang sama." });
-
 
             _context.PeminjamanRuangan.Add(entity);
             await _context.SaveChangesAsync();
 
-            return Ok(entity);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var data = await _context.PeminjamanRuangan
-                .AsNoTracking()
-                .OrderByDescending(x => x.Id)
-                .ToListAsync();
-
-            return Ok(data);
-        }
-
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var data = await _context.PeminjamanRuangan
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (data == null)
-                return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
-
-            return Ok(data);
+            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] PeminjamanUpdateDto dto)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] PeminjamanCreateDto dto)
         {
-            var entity = await _context.PeminjamanRuangan
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _context.PeminjamanRuangan.FindAsync(id);
+            if (entity == null) return NotFound();
 
-            if (entity == null)
-                return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
+            if (dto.JamSelesai <= dto.JamMulai)
+            {
+                return BadRequest("Jam selesai harus lebih besar dari jam mulai.");
+            }
 
-            if (dto.JamMulai >= dto.JamSelesai)
-                return BadRequest(new { message = "JamMulai harus lebih kecil dari JamSelesai." });
+            entity.NamaPeminjam = dto.NamaPeminjam;
+            entity.NamaRuangan = dto.NamaRuangan;
+            entity.Keperluan = dto.Keperluan;
+            entity.TanggalPeminjaman = dto.TanggalPeminjaman.Date;
+            entity.JamMulai = dto.JamMulai;
+            entity.JamSelesai = dto.JamSelesai;
 
-            var bentrok = await IsBentrokAsync(
-               dto.NamaRuangan,
-               dto.TanggalPeminjaman,
-               dto.JamMulai,
-               dto.JamSelesai,
-               exceptId: id,
-               hanyaBentrokDenganDisetujui: false // menunggu+disetujui dianggap mengunci slot
-             );
-
-             if (bentrok)
-              return BadRequest(new { message = "Jadwal bentrok dengan peminjaman lain pada ruangan dan tanggal yang sama." });
-    
-
-             entity.NamaPeminjam = dto.NamaPeminjam;
-             entity.NamaRuangan = dto.NamaRuangan;
-             entity.Keperluan = dto.Keperluan;
-             entity.TanggalPeminjaman = dto.TanggalPeminjaman.Date;
-             entity.JamMulai = dto.JamMulai;
-             entity.JamSelesai = dto.JamSelesai;
-             entity.Status = dto.Status.ToLowerInvariant();
-
-              await _context.SaveChangesAsync();
-
+            await _context.SaveChangesAsync();
             return Ok(entity);
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var entity = await _context.PeminjamanRuangan
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entity == null)
-                return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
+            var entity = await _context.PeminjamanRuangan.FindAsync(id);
+            if (entity == null) return NotFound();
 
             _context.PeminjamanRuangan.Remove(entity);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = $"Data dengan id {id} berhasil dihapus." });
+            return NoContent();
         }
 
         [HttpPatch("{id:int}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] PeminjamanUpdateStatusDto dto)
+        public async Task<IActionResult> UpdateStatus([FromRoute] int id, [FromBody] PeminjamanUpdateStatusDto dto)
         {
-            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "menunggu", "disetujui", "ditolak"
-            };
+            var entity = await _context.PeminjamanRuangan.FindAsync(id);
+            if (entity == null) return NotFound();
 
-            if (!allowed.Contains(dto.Status))
-                return BadRequest(new { message = "Status tidak valid. Gunakan: menunggu, disetujui, ditolak." });
+            var status = (dto.Status ?? "").Trim().ToLowerInvariant();
+            var allowed = new[] { "menunggu", "disetujui", "ditolak" };
+            if (!allowed.Contains(status))
+                return BadRequest("Status harus: menunggu | disetujui | ditolak");
 
-            var entity = await _context.PeminjamanRuangan.FirstOrDefaultAsync(x => x.Id == id);
-            if (entity == null)
-                return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
-
-            var statusSebelumnya = entity.Status;
-            var statusSekarang = dto.Status.ToLowerInvariant();
-
-            if (string.Equals(statusSebelumnya, statusSekarang, StringComparison.OrdinalIgnoreCase))
-            return Ok(entity);
-
-             entity.Status = statusSekarang;
-
-            _context.RiwayatStatusPeminjaman.Add(new RiwayatStatusPeminjaman
-             {
-             PeminjamanId = entity.Id,
-             StatusSebelumnya = statusSebelumnya,
-             StatusSekarang = statusSekarang,
-             DiubahOleh = dto.DiubahOleh,
-             Keterangan = dto.Keterangan,
-             WaktuPerubahan = DateTime.UtcNow
-    });
-
-
-
+            entity.Status = status;
             await _context.SaveChangesAsync();
+
             return Ok(entity);
         }
-
-        [HttpGet("{id:int}/riwayat-status")]
-        public async Task<IActionResult> GetRiwayatStatus(int id)
-        {
-            var exists = await _context.PeminjamanRuangan.AsNoTracking().AnyAsync(x => x.Id == id);
-            if (!exists)
-                return NotFound(new { message = $"Data dengan id {id} tidak ditemukan." });
-
-            var data = await _context.RiwayatStatusPeminjaman
-                .AsNoTracking()
-                .Where(x => x.PeminjamanId == id)
-                .OrderByDescending(x => x.WaktuPerubahan)
-                .ToListAsync();
-
-            return Ok(data);
-        }
-
-        [HttpGet("search")]
-        public async Task<IActionResult> Search(
-            [FromQuery] DateTime? tanggal,
-            [FromQuery] string? ruangan,
-            [FromQuery] string? status,
-            [FromQuery] string? q,
-            [FromQuery] string? sort = "id_desc",
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 10;
-            if (pageSize > 100) pageSize = 100;
-
-            var query = _context.PeminjamanRuangan.AsNoTracking().AsQueryable();
-
-            if (tanggal.HasValue)
-                query = query.Where(x => x.TanggalPeminjaman.Date == tanggal.Value.Date);
-
-            if (!string.IsNullOrWhiteSpace(ruangan))
-                query = query.Where(x => x.NamaRuangan.Contains(ruangan));
-
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(x => x.Status == status.ToLower());
-
-            if (!string.IsNullOrWhiteSpace(q))
-            {
-                query = query.Where(x =>
-                    x.NamaPeminjam.Contains(q) ||
-                    x.NamaRuangan.Contains(q) ||
-                    x.Keperluan.Contains(q)
-                );
-            }
-
-            query = sort?.ToLower() switch
-            {
-                "tanggal_asc" => query.OrderBy(x => x.TanggalPeminjaman).ThenBy(x => x.JamMulai),
-                "tanggal_desc" => query.OrderByDescending(x => x.TanggalPeminjaman).ThenByDescending(x => x.JamMulai),
-                "id_asc" => query.OrderBy(x => x.Id),
-                _ => query.OrderByDescending(x => x.Id)
-            };
-
-            var total = await query.CountAsync();
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return Ok(new
-            {
-                page,
-                pageSize,
-                total,
-                totalPages = (int)Math.Ceiling(total / (double)pageSize),
-                items
-            });
-        }
-
-         private async Task<bool> IsBentrokAsync(
-         string namaRuangan,
-         DateTime tanggalPeminjaman,
-         TimeSpan jamMulai,
-         TimeSpan jamSelesai,
-         int? exceptId = null,
-         bool hanyaBentrokDenganDisetujui = false)
-         {      
-         var tanggal = tanggalPeminjaman.Date;
-    
-         var query = _context.PeminjamanRuangan.AsNoTracking()
-        .Where(x =>
-            x.NamaRuangan == namaRuangan &&
-            x.TanggalPeminjaman.Date == tanggal &&
-            x.JamMulai < jamSelesai &&
-            x.JamSelesai > jamMulai);
-
-         if (exceptId.HasValue)
-         query = query.Where(x => x.Id != exceptId.Value);
-   
-         if (hanyaBentrokDenganDisetujui)
-         query = query.Where(x => x.Status == "disetujui");
-         else
-         query = query.Where(x => x.Status != "ditolak"); // menunggu + disetujui dianggap mengunci slot
-
-         return await query.AnyAsync();
-         }
-
     }
 }
